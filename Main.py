@@ -1,16 +1,17 @@
 from fastapi import FastAPI, Request
-from pydantic import BaseModel
 from fastapi.responses import PlainTextResponse
-import os
-import openai
 from dotenv import load_dotenv
+import openai
+import os
 
 load_dotenv()
 
+# Nova forma de instanciar o cliente da OpenAI
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 app = FastAPI()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
+# Simples armazenamento em memória (para testes)
 students = {}
 
 @app.get("/health")
@@ -24,7 +25,7 @@ async def webhook(request: Request):
     sender = form.get("From", "")
 
     if not incoming_msg or not sender:
-        return "Mensagem inválida"
+        return "Mensagem inválida."
 
     if sender not in students:
         students[sender] = {"history": []}
@@ -32,13 +33,13 @@ async def webhook(request: Request):
     students[sender]["history"].append(f"Aluno: {incoming_msg}")
 
     prompt = f"""
-Você é um assistente virtual de um curso de empreendedorismo para universitários.
-Responda com uma linguagem clara, motivadora, usando emojis quando fizer sentido.
+Você é um assistente virtual especialista em empreendedorismo para estudantes universitários.
+Responda com clareza, linguagem acessível, emojis quando fizer sentido, e mostre entusiasmo!
 Mensagem do aluno: {incoming_msg}
 """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Você é um assistente educacional especialista em empreendedorismo."},
@@ -47,11 +48,10 @@ Mensagem do aluno: {incoming_msg}
             temperature=0.7,
             max_tokens=1000,
         )
-        reply = response.choices[0].message["content"]
+        reply = response.choices[0].message.content.strip()
     except Exception as e:
         print(f"Erro ao chamar a API da OpenAI: {e}")
         reply = f"Ocorreu um erro com a IA: {e}"
-
 
     students[sender]["history"].append(f"IA: {reply}")
     return reply
