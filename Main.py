@@ -18,6 +18,22 @@ students = {}
 def health():
     return {"status": "ok"}
 
+def extrair_dado(pergunta: str, resposta: str) -> str:
+    try:
+        result = client.chat.completions.create(
+            model="openai/gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": pergunta},
+                {"role": "user", "content": resposta}
+            ],
+            temperature=0.2,
+            max_tokens=20
+        )
+        return result.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Erro ao extrair dado: {e}")
+        return resposta  # fallback
+
 @app.post("/webhook", response_class=PlainTextResponse)
 async def webhook(request: Request):
     form = await request.form()
@@ -36,41 +52,53 @@ async def webhook(request: Request):
                 "interesses": None
             },
             "etapa": "perfil_nome",
-            "history": [],
-            "esperando_resposta": False
+            "history": []
         }
 
     aluno = students[sender]
-
     etapa = aluno["etapa"]
 
-    # Controle para esperar a resposta antes de avançar
     if etapa == "perfil_nome":
         if aluno["profile"]["nome"] is None:
             if not aluno["history"]:
                 aluno["history"].append(f"Aluno: {incoming_msg}")
                 return "Olá! 👋 Antes de começarmos, qual o seu nome?"
             else:
-                aluno["profile"]["nome"] = incoming_msg
+                nome = extrair_dado(
+                    "Extraia apenas o primeiro nome da mensagem abaixo. Responda só com o nome.",
+                    incoming_msg
+                )
+                aluno["profile"]["nome"] = nome
                 aluno["etapa"] = "perfil_curso"
-                return f"Legal, {incoming_msg}! Qual o seu curso ou área de estudo? 🎓"
+                return f"Legal, {nome}! Qual o seu curso ou área de estudo? 🎓"
 
     elif etapa == "perfil_curso":
-        aluno["profile"]["curso"] = incoming_msg
+        curso = extrair_dado(
+            "Extraia apenas o nome do curso ou área de estudo da mensagem abaixo. Seja direto e responda só com o curso.",
+            incoming_msg
+        )
+        aluno["profile"]["curso"] = curso
         aluno["etapa"] = "perfil_semestre"
         return "Show! Em qual semestre ou período você está? 📚"
 
     elif etapa == "perfil_semestre":
-        aluno["profile"]["semestre"] = incoming_msg
+        semestre = extrair_dado(
+            "Extraia apenas o número do semestre ou período da mensagem abaixo. Ex: 1, 2, 3, etc.",
+            incoming_msg
+        )
+        aluno["profile"]["semestre"] = semestre
         aluno["etapa"] = "perfil_interesses"
         return "Perfeito! E quais são seus interesses em empreender? 💡"
 
     elif etapa == "perfil_interesses":
-        aluno["profile"]["interesses"] = incoming_msg
+        interesses = extrair_dado(
+            "Resuma os principais interesses empreendedores da mensagem abaixo em poucas palavras.",
+            incoming_msg
+        )
+        aluno["profile"]["interesses"] = interesses
         aluno["etapa"] = "pronto"
         return "Perfil completo! 🎉 Agora vamos começar nosso curso de empreendedorismo 🚀"
 
-    # Geração de resposta da IA com base no perfil
     profile = aluno["profile"]
     prompt = f"""
 Você é um assistente virtual de um curso de empreendedorismo para universitários.
