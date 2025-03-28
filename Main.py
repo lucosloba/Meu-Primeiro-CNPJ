@@ -4,14 +4,16 @@ from dotenv import load_dotenv
 import openai
 import os
 
+# Carrega variáveis de ambiente do .env
 load_dotenv()
 
-# Nova forma de instanciar o cliente da OpenAI
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# 🔐 Configuração da OpenRouter
+openai.api_key = os.getenv("OPENROUTER_API_KEY")
+openai.api_base = "https://openrouter.ai/api/v1"
 
 app = FastAPI()
 
-# Simples armazenamento em memória (para testes)
+# Armazena informações básicas por aluno (em memória para testes)
 students = {}
 
 @app.get("/health")
@@ -27,31 +29,34 @@ async def webhook(request: Request):
     if not incoming_msg or not sender:
         return "Mensagem inválida."
 
+    # Inicializa histórico se aluno for novo
     if sender not in students:
         students[sender] = {"history": []}
 
     students[sender]["history"].append(f"Aluno: {incoming_msg}")
 
+    # Prompt que será enviado ao modelo
     prompt = f"""
-Você é um assistente virtual especialista em empreendedorismo para estudantes universitários.
-Responda com clareza, linguagem acessível, emojis quando fizer sentido, e mostre entusiasmo!
+Você é um assistente virtual de um curso de empreendedorismo voltado para estudantes universitários brasileiros.
+Seja claro, didático, empolgado, e utilize emojis de forma leve para manter o engajamento.
 Mensagem do aluno: {incoming_msg}
 """
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+        response = openai.ChatCompletion.create(
+            model="openai/gpt-3.5-turbo",  # Modelo gratuito via OpenRouter
             messages=[
                 {"role": "system", "content": "Você é um assistente educacional especialista em empreendedorismo."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=1000,
+            max_tokens=1000
         )
-        reply = response.choices[0].message.content.strip()
+        reply = response.choices[0].message["content"].strip()
+
     except Exception as e:
-        print(f"Erro ao chamar a API da OpenAI: {e}")
-        reply = f"Ocorreu um erro com a IA: {e}"
+        print(f"Erro ao chamar a API da OpenRouter: {e}")
+        reply = f"Ocorreu um erro ao processar sua pergunta. Erro técnico: {e}"
 
     students[sender]["history"].append(f"IA: {reply}")
     return reply
