@@ -46,14 +46,14 @@ async def webhook(request: Request):
 
     # Controle para esperar a resposta antes de avançar
     if etapa == "perfil_nome":
-        if not aluno["esperando_resposta"]:
-            aluno["esperando_resposta"] = True
-            return "Olá! 👋 Antes de começarmos, qual o seu nome?"
-        else:
-            aluno["profile"]["nome"] = incoming_msg
-            aluno["etapa"] = "perfil_curso"
-            aluno["esperando_resposta"] = False
-            return f"Legal, {incoming_msg}! Qual o seu curso ou área de estudo? 🎓"
+        if aluno["profile"]["nome"] is None:
+            if not aluno["history"]:
+                aluno["history"].append(f"Aluno: {incoming_msg}")
+                return "Olá! 👋 Antes de começarmos, qual o seu nome?"
+            else:
+                aluno["profile"]["nome"] = incoming_msg
+                aluno["etapa"] = "perfil_curso"
+                return f"Legal, {incoming_msg}! Qual o seu curso ou área de estudo? 🎓"
 
     elif etapa == "perfil_curso":
         aluno["profile"]["curso"] = incoming_msg
