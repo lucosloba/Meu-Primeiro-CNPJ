@@ -49,7 +49,9 @@ Mensagem do aluno: {incoming_msg}
         )
         reply = response.choices[0].message["content"]
     except Exception as e:
-        reply = "Desculpe, houve um erro ao processar sua mensagem."
+        print(f"Erro ao chamar a API da OpenAI: {e}")
+        reply = f"Ocorreu um erro com a IA: {e}"
+
 
     students[sender]["history"].append(f"IA: {reply}")
     return reply
