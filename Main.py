@@ -4,10 +4,8 @@ from dotenv import load_dotenv
 import openai
 import os
 
-# Carrega variáveis de ambiente
 load_dotenv()
 
-# Cliente OpenAI com base na OpenRouter
 client = openai.OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1"
@@ -29,7 +27,6 @@ async def webhook(request: Request):
     if not incoming_msg or not sender:
         return "Mensagem inválida."
 
-    # Inicia estrutura do aluno se ainda não estiver salva
     if sender not in students:
         students[sender] = {
             "profile": {
@@ -39,18 +36,24 @@ async def webhook(request: Request):
                 "interesses": None
             },
             "etapa": "perfil_nome",
-            "history": []
+            "history": [],
+            "esperando_resposta": False
         }
 
     aluno = students[sender]
 
-    # Coleta do perfil por etapas
     etapa = aluno["etapa"]
 
+    # Controle para esperar a resposta antes de avançar
     if etapa == "perfil_nome":
-        aluno["profile"]["nome"] = incoming_msg
-        aluno["etapa"] = "perfil_curso"
-        return "Legal, {0}! Qual o seu curso ou área de estudo? 🎓".format(incoming_msg)
+        if not aluno["esperando_resposta"]:
+            aluno["esperando_resposta"] = True
+            return "Olá! 👋 Antes de começarmos, qual o seu nome?"
+        else:
+            aluno["profile"]["nome"] = incoming_msg
+            aluno["etapa"] = "perfil_curso"
+            aluno["esperando_resposta"] = False
+            return f"Legal, {incoming_msg}! Qual o seu curso ou área de estudo? 🎓"
 
     elif etapa == "perfil_curso":
         aluno["profile"]["curso"] = incoming_msg
@@ -67,7 +70,7 @@ async def webhook(request: Request):
         aluno["etapa"] = "pronto"
         return "Perfil completo! 🎉 Agora vamos começar nosso curso de empreendedorismo 🚀"
 
-    # Geração de resposta da IA após coleta do perfil
+    # Geração de resposta da IA com base no perfil
     profile = aluno["profile"]
     prompt = f"""
 Você é um assistente virtual de um curso de empreendedorismo para universitários.
@@ -89,6 +92,7 @@ Mensagem do aluno: {incoming_msg}
             max_tokens=1000
         )
         reply = response.choices[0].message.content.strip()
+
     except Exception as e:
         print(f"Erro ao chamar a API da OpenRouter: {e}")
         reply = f"Ocorreu um erro ao processar sua pergunta. Erro técnico: {e}"
