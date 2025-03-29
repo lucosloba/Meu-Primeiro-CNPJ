@@ -10,53 +10,53 @@
           "quiz": [
             {
               "nivel": "dificil",
-              "pergunta": "Pergunta difícil 1",
+              "pergunta": "Segundo a teoria da destruição criativa de Schumpeter, qual é o papel do empreendedor?",
               "opcoes": [
-                "A",
-                "B",
-                "C"
-              ],
-              "resposta": "A"
-            },
-            {
-              "nivel": "dificil",
-              "pergunta": "Pergunta difícil 2",
-              "opcoes": [
-                "A",
-                "B",
-                "C"
+                "A) Manter o equilíbrio do mercado",
+                "B) Introduzir inovações que rompem com o status quo",
+                "C) Atuar como gestor de rotina"
               ],
               "resposta": "B"
             },
             {
-              "nivel": "medio",
-              "pergunta": "Pergunta média 1",
+              "nivel": "dificil",
+              "pergunta": "Qual das opções melhor representa o conceito de risco no empreendedorismo?",
               "opcoes": [
-                "A",
-                "B",
-                "C"
+                "A) Ter um plano de negócios estático",
+                "B) Investir sem analisar o mercado",
+                "C) Tomar decisões com base em incertezas visando retorno futuro"
               ],
               "resposta": "C"
             },
             {
               "nivel": "medio",
-              "pergunta": "Pergunta média 2",
+              "pergunta": "Empreender pode ser definido como:",
               "opcoes": [
-                "A",
-                "B",
-                "C"
+                "A) Abrir uma empresa",
+                "B) Criar soluções para problemas e gerar valor",
+                "C) Vender produtos online"
               ],
               "resposta": "B"
             },
             {
-              "nivel": "facil",
-              "pergunta": "Pergunta fácil",
+              "nivel": "medio",
+              "pergunta": "O que diferencia um intraempreendedor de um empreendedor tradicional?",
               "opcoes": [
-                "A",
-                "B",
-                "C"
+                "A) O intraempreendedor trabalha dentro de uma organização",
+                "B) O intraempreendedor tem seu próprio negócio",
+                "C) Ambos são idênticos"
               ],
               "resposta": "A"
+            },
+            {
+              "nivel": "facil",
+              "pergunta": "Qual é uma característica comum de empreendedores de sucesso?",
+              "opcoes": [
+                "A) Procrastinação",
+                "B) Aversão a riscos",
+                "C) Proatividade"
+              ],
+              "resposta": "C"
             }
           ]
         },
@@ -64,7 +64,68 @@
           "id": 2,
           "titulo": "Perfil Empreendedor",
           "pontuacao": 10,
-          "quiz": []
+          "quiz": [
+            {
+              "nivel": "dificil",
+              "pergunta": "Segundo McClelland, a motivação de realização é uma característica central no perfil do empreendedor. Assinale a alternativa que melhor exemplifica um comportamento orientado por essa motivação.",
+              "opcoes": [
+                "A) Evitar responsabilidades para reduzir a pressão.",
+                "B) Trabalhar apenas sob forte supervisão.",
+                "C) Buscar constantemente desafios com metas específicas e mensuráveis.",
+                "D) Priorizar segurança e estabilidade no trabalho.",
+                "E) Repetir tarefas já dominadas para evitar falhas."
+              ],
+              "resposta": "C"
+            },
+            {
+              "nivel": "dificil",
+              "pergunta": "Em relação ao conceito de locus de controle aplicado ao perfil empreendedor, é correto afirmar que:",
+              "opcoes": [
+                "A) Empreendedores com locus externo acreditam que seu sucesso depende exclusivamente da sorte.",
+                "B) O locus de controle não influencia o comportamento empreendedor.",
+                "C) Locus interno implica dependência de fatores externos para agir.",
+                "D) Locus externo estimula a proatividade no ambiente organizacional.",
+                "E) Locus interno representa a crença de que as ações do indivíduo influenciam diretamente os resultados."
+              ],
+              "resposta": "E"
+            },
+            {
+              "nivel": "medio",
+              "pergunta": "Sobre o comportamento empreendedor, analise as alternativas a seguir e assinale a incorreta:",
+              "opcoes": [
+                "A) O empreendedor é proativo e age antes dos concorrentes.",
+                "B) O empreendedor busca oportunidades mesmo em situações adversas.",
+                "C) O empreendedor evita feedback para manter sua confiança.",
+                "D) O empreendedor toma decisões mesmo com informações incompletas.",
+                "E) O empreendedor tem disposição para assumir riscos."
+              ],
+              "resposta": "C"
+            },
+            {
+              "nivel": "medio",
+              "pergunta": "Entre os perfis de empreendedores identificados por Dornelas, qual está mais associado à inovação e à criação de novos mercados?",
+              "opcoes": [
+                "A) Empreendedor por necessidade.",
+                "B) Empreendedor corporativo.",
+                "C) Empreendedor social.",
+                "D) Empreendedor nato.",
+                "E) Empreendedor por oportunidade."
+              ],
+              "resposta": "E"
+            },
+            {
+              "nivel": "facil",
+              "pergunta": "Assinale a alternativa que representa uma competência típica de um empreendedor:",
+              "opcoes": [
+                "A) Evitar mudanças e seguir sempre o planejado.",
+                "B) Depender exclusivamente de orientações superiores.",
+                "C) Ter iniciativa para buscar soluções e implementar ideias.",
+                "D) Trabalhar isoladamente e evitar colaborações.",
+                "E) Concentrar-se apenas em tarefas operacionais."
+              ],
+              "resposta": "C"
+            }
+          ]
         }
       ],
       "atividade_pratica": {
@@ -79,14 +140,22 @@
   },
   "alunos": {
     "whatsapp:+55000000000": {
-      "nome": "",
+      "nome": "Luan",
       "modulo_atual": 1,
       "topico_atual": 0,
       "pontos": 0,
       "respostas": {},
       "reprovado_em": [],
       "atividade_pratica_concluida": false,
-      "quiz_modulo_concluido": false
+      "quiz_modulo_concluido": false,
+      "etapa": "inicio",
+      "profile": {
+        "nome": null,
+        "curso": null,
+        "semestre": null,
+        "interesses": null
+      },
+      "history": []
     }
   }
 }
