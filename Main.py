@@ -34,8 +34,9 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
         },
         "perfil_curso": {
             "prompt": (
-                f"O aluno se chama {perfil['nome']}. Agora pergunte de forma simpática e clara qual curso ou área o aluno está cursando. "
+                f"O aluno se chama {perfil['nome']}. Agora pergunte de forma simpática e clara qual curso ou área de formação o aluno está cursando atualmente. "
                 "Evite perguntar onde estuda ou se está interessado. Pergunte apenas o que ele cursa na faculdade."
+                "Evite falar olá novamente pois você já disse na mensagem de apresentação"
             )
         },
         "perfil_semestre": {
@@ -53,7 +54,7 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
         "pronto": {
             "prompt": (
                 f"Você é o instrutor Pjotinha. O aluno {perfil['nome']} completou o perfil (curso: {perfil['curso']}, semestre: {perfil['semestre']}, interesses: {perfil['interesses']}). "
-                "Agradeça de forma simpática por compartilhar essas informações, diga que agora você conhece melhor o aluno e finalize com a pergunta: "
+                "Agradeça de forma simpática por compartilhar essas informações, diga que foi um prazer conhecer ele melhor e finalize com a pergunta: "
                 "'Você está pronto para dar o primeiro passo no mundo do empreendedorismo?' Não use a palavra 'perfil'."
             )
         }
