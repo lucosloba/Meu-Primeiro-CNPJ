@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import openai
 import os
 import re
+import json
 
 load_dotenv()
 
@@ -13,7 +14,12 @@ client = openai.OpenAI(
 )
 
 app = FastAPI()
-students = {}
+
+# Base de módulos e progresso
+with open("base_modular_meu_primeiro_cnpj.json", encoding="utf-8") as f:
+    base = json.load(f)
+MODULOS = base["modulos"]
+ALUNOS = base["alunos"]
 
 @app.get("/health")
 def health():
@@ -109,32 +115,39 @@ async def webhook(request: Request):
     if not incoming_msg or not sender:
         return "Mensagem inválida."
 
-    if sender not in students:
-        students[sender] = {
+    if sender not in ALUNOS:
+        ALUNOS[sender] = {
+            "nome": "",
+            "modulo_atual": 1,
+            "topico_atual": 0,
+            "pontos": 0,
+            "respostas": {},
+            "reprovado_em": [],
+            "atividade_pratica_concluida": False,
+            "quiz_modulo_concluido": False,
+            "etapa": "inicio",
             "profile": {
                 "nome": None,
                 "curso": None,
                 "semestre": None,
                 "interesses": None
             },
-            "etapa": "inicio",
             "history": []
         }
 
-    aluno = students[sender]
+    aluno = ALUNOS[sender]
     etapa = aluno["etapa"]
     perfil = aluno["profile"]
 
     if etapa == "inicio":
         aluno["etapa"] = "perfil_nome"
         return (
-            "Olá! 👋 Me chamo *Pjotinha*, serei seu instrutor no curso *Meu Primeiro CNPJ*.\n"
+            "Olá! 👋 Me chamo *Pjotinha*, serei seu instrutor no curso *Meu Primeiro CNPJ*."
             "Posso te conhecer melhor? Como você se chama?"
         )
 
     if etapa != "pronto":
         if eh_pergunta(incoming_msg):
-            # Ignora coleta e responde como assistente livre
             prompt = f"O aluno fez a seguinte pergunta: {incoming_msg}. Responda como o instrutor Pjotinha, de forma clara e empolgada."
             try:
                 resposta = client.chat.completions.create(
