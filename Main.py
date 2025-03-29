@@ -66,7 +66,7 @@ def extrair_dado(etapa, entrada):
     instrucoes = {
         "perfil_nome": "Extraia apenas o primeiro nome da mensagem abaixo. Responda só com o nome.",
         "perfil_curso": "Extraia apenas o nome do curso ou área de estudo da mensagem abaixo. Responda só com o curso.",
-        "perfil_semestre": "Extraia apenas o número do semestre ou período da mensagem abaixo. Ex: 1, 2, 3, etc.",
+        "perfil_semestre": "Extraia apenas o número do semestre ou período da mensagem abaixo em formato numérico.",
         "perfil_interesses": "Resuma os principais interesses empreendedores da mensagem abaixo em poucas palavras."
     }
 
@@ -102,7 +102,7 @@ async def webhook(request: Request):
                 "semestre": None,
                 "interesses": None
             },
-            "etapa": "perfil_nome",
+            "etapa": "inicio",
             "history": []
         }
 
@@ -110,19 +110,21 @@ async def webhook(request: Request):
     etapa = aluno["etapa"]
     perfil = aluno["profile"]
 
+    if etapa == "inicio":
+        aluno["etapa"] = "perfil_nome"
+        return "Olá! 👋 Antes de começarmos o curso, posso te conhecer melhor? Qual o seu nome?"
+
     if etapa != "pronto":
         valor_extraido = extrair_dado(etapa, incoming_msg)
         campo = etapa.replace("perfil_", "")
         aluno["profile"][campo] = valor_extraido
 
-        # Avança para a próxima etapa
         etapas = ["perfil_nome", "perfil_curso", "perfil_semestre", "perfil_interesses", "pronto"]
         proxima_etapa = etapas[etapas.index(etapa) + 1]
         aluno["etapa"] = proxima_etapa
 
         return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
 
-    # Se perfil já foi coletado
     prompt = f"""
 Você é um assistente virtual de um curso de empreendedorismo para universitários.
 O aluno se chama {perfil['nome']}, cursa {perfil['curso']}, está no {perfil['semestre']} semestre
