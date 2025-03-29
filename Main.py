@@ -35,14 +35,15 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
         "perfil_curso": {
             "prompt": (
                 f"O aluno se chama {perfil['nome']}. Agora pergunte de forma simpática e clara qual curso ou área de formação o aluno está cursando atualmente. "
-                "Evite perguntar onde estuda ou se está interessado. Pergunte apenas o que ele cursa na faculdade."
+                "Evite perguntar onde estuda ou se está interessado. Pergunte apenas o que ele cursa na universidade."
                 "Evite falar olá novamente pois você já disse na mensagem de apresentação"
             )
         },
         "perfil_semestre": {
             "prompt": (
-                f"O aluno cursa {perfil['curso']}. Agora pergunte em qual semestre ele está. "
+                f"O aluno cursa {perfil['curso']}. Agora mostre empolgação com o curso que o aluno faz e pergunte em qual semestre ele está. "
                 "Seja direto, simpático e não pergunte mais de uma coisa."
+                "Evite falar olá novamente pois você já disse na mensagem de apresentação"
             )
         },
         "perfil_interesses": {
@@ -79,8 +80,8 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
 def extrair_dado(etapa, entrada):
     instrucoes = {
         "perfil_nome": "Extraia apenas o primeiro nome da mensagem abaixo. Responda só com o nome.",
-        "perfil_curso": "Extraia apenas o nome do curso ou área que o aluno está cursando na faculdade.",
-        "perfil_semestre": "Extraia apenas o número do semestre da faculdade em que o aluno está, como 1, 2, 3...",
+        "perfil_curso": "Extraia apenas o nome do curso ou área que o aluno está cursando na universidade.",
+        "perfil_semestre": "Extraia apenas o número do semestre da universidade em que o aluno está, como 1, 2, 3...",
         "perfil_interesses": "Resuma os interesses empreendedores do aluno com poucas palavras."
     }
 
