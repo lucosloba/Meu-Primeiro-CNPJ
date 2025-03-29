@@ -3,6 +3,7 @@ from fastapi.responses import PlainTextResponse
 from dotenv import load_dotenv
 import openai
 import os
+import re
 
 load_dotenv()
 
@@ -18,72 +19,67 @@ students = {}
 def health():
     return {"status": "ok"}
 
+def eh_pergunta(texto: str) -> bool:
+    texto = texto.lower().strip()
+    return texto.endswith("?") or any(texto.startswith(p) for p in ["qual", "quais", "como", "quando", "o que", "por que"])
+
 def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
     prompts = {
         "perfil_nome": {
-            "pergunta": "Qual o seu nome?",
             "prompt": (
-                "Você é um assistente educacional chamado Pjotinha, instrutor do curso 'Meu Primeiro CNPJ'. "
-                "Apresente-se de forma simpática e pergunte apenas o nome do aluno. Seja breve e evite múltiplas perguntas."
+                "Você é um instrutor chamado Pjotinha, responsável pelo curso 'Meu Primeiro CNPJ'. "
+                "Você já conhece o aluno e agora quer perguntar o nome dele de forma simpática e clara. "
+                "Peça apenas o nome e não faça outras perguntas."
             )
         },
         "perfil_curso": {
-            "pergunta": "Qual o seu curso ou área de estudo?",
             "prompt": (
-                f"Você é o instrutor Pjotinha. O aluno disse que se chama {perfil['nome']}. "
-                "Responda com simpatia e pergunte apenas o curso ou área de estudo. Não faça mais de uma pergunta."
+                f"O aluno se chama {perfil['nome']}. Agora pergunte de forma simpática e clara qual curso ou área o aluno está cursando. "
+                "Evite perguntar onde estuda ou se está interessado. Pergunte apenas o que ele cursa na universidade."
             )
         },
         "perfil_semestre": {
-            "pergunta": "Qual semestre ou período você está?",
             "prompt": (
-                f"O aluno está cursando {perfil['curso']}. Você é o instrutor Pjotinha. "
-                "Comente brevemente e pergunte apenas o semestre. Seja direto e simpático."
+                f"O aluno cursa {perfil['curso']}. Agora pergunte em qual semestre ele está. "
+                "Seja direto, simpático e não pergunte mais de uma coisa."
             )
         },
         "perfil_interesses": {
-            "pergunta": "Quais são seus interesses em empreender?",
             "prompt": (
-                f"O aluno está no {perfil['semestre']} semestre. Você é o Pjotinha, instrutor do curso. "
-                "Responda com entusiasmo e pergunte apenas quais são os interesses em empreender."
+                f"O aluno está no {perfil['semestre']} semestre. Agora pergunte apenas sobre os interesses dele em empreender. "
+                "Não inclua outras perguntas. Use tom empolgado e próximo."
             )
         },
         "pronto": {
-            "pergunta": "",
             "prompt": (
-                f"Você é o instrutor Pjotinha. O aluno completou o perfil: nome={perfil['nome']}, curso={perfil['curso']}, "
-                f"semestre={perfil['semestre']}, interesses={perfil['interesses']}. "
-                "Diga algo empolgado e conte que vamos começar o curso agora!"
+                f"O aluno {perfil['nome']} completou o perfil (curso: {perfil['curso']}, semestre: {perfil['semestre']}, interesses: {perfil['interesses']}). "
+                "Agora diga que está tudo pronto e comece a apresentar o curso com entusiasmo. Evite repetir perguntas."
             )
         }
     }
 
-    etapa = etapa_atual
-    dados = prompts[etapa]
-
     try:
-        resposta = client.chat.completions.create(
+        mensagem = client.chat.completions.create(
             model="openai/gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Fale como um instrutor educacional carismático e claro, chamado Pjotinha."},
-                {"role": "user", "content": dados["prompt"]}
+                {"role": "system", "content": "Você é o instrutor Pjotinha, simpático, direto e focado no curso de empreendedorismo. Nunca faça mais de uma pergunta por vez."},
+                {"role": "user", "content": prompts[etapa_atual]["prompt"]}
             ],
             temperature=0.7,
             max_tokens=200
-        )
-        mensagem = resposta.choices[0].message.content.strip()
+        ).choices[0].message.content.strip()
     except Exception as e:
-        print(f"Erro ao gerar resposta na etapa {etapa}: {e}")
-        mensagem = dados["pergunta"]
+        print(f"Erro ao gerar resposta da etapa {etapa_atual}: {e}")
+        mensagem = "Desculpe, houve um erro. Poderia repetir?"
 
     return mensagem
 
 def extrair_dado(etapa, entrada):
     instrucoes = {
         "perfil_nome": "Extraia apenas o primeiro nome da mensagem abaixo. Responda só com o nome.",
-        "perfil_curso": "Extraia apenas o nome do curso ou área de estudo da mensagem abaixo. Responda só com o curso.",
-        "perfil_semestre": "Extraia apenas o número do semestre ou período da mensagem abaixo em formato numérico.",
-        "perfil_interesses": "Resuma os principais interesses empreendedores da mensagem abaixo em poucas palavras."
+        "perfil_curso": "Extraia apenas o nome do curso ou área que o aluno está cursando na universidade.",
+        "perfil_semestre": "Extraia apenas o número do semestre da universidade em que o aluno está, como 1, 2, 3...",
+        "perfil_interesses": "Resuma os interesses empreendedores do aluno com poucas palavras."
     }
 
     try:
@@ -98,7 +94,7 @@ def extrair_dado(etapa, entrada):
         )
         return resultado.choices[0].message.content.strip()
     except Exception as e:
-        print(f"Erro ao extrair dado da etapa {etapa}: {e}")
+        print(f"Erro ao extrair dado de {etapa}: {e}")
         return entrada
 
 @app.post("/webhook", response_class=PlainTextResponse)
@@ -134,6 +130,24 @@ async def webhook(request: Request):
         )
 
     if etapa != "pronto":
+        if eh_pergunta(incoming_msg):
+            # Ignora coleta e responde como assistente livre
+            prompt = f"O aluno fez a seguinte pergunta: {incoming_msg}. Responda como o instrutor Pjotinha, de forma clara e empolgada."
+            try:
+                resposta = client.chat.completions.create(
+                    model="openai/gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Você é o Pjotinha, um instrutor simpático e direto em um curso de empreendedorismo para universitários."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=400
+                )
+                return resposta.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"Erro ao responder pergunta do aluno: {e}")
+                return "Desculpe, tive um problema ao responder. Pode repetir?"
+
         valor_extraido = extrair_dado(etapa, incoming_msg)
         campo = etapa.replace("perfil_", "")
         aluno["profile"][campo] = valor_extraido
@@ -145,19 +159,16 @@ async def webhook(request: Request):
         return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
 
     prompt = f"""
-Você é um assistente virtual de um curso de empreendedorismo para universitários.
-O aluno se chama {perfil['nome']}, cursa {perfil['curso']}, está no {perfil['semestre']} semestre
-e tem interesse em {perfil['interesses']}.
-Com base nessas informações, responda a seguinte mensagem de forma didática, com energia e usando emojis quando fizer sentido.
-
-Mensagem do aluno: {incoming_msg}
+Você é o Pjotinha, assistente virtual do curso de empreendedorismo. O aluno se chama {perfil['nome']}, faz {perfil['curso']}, está no {perfil['semestre']} semestre e tem interesse em {perfil['interesses']}.
+Responda a seguinte mensagem com base nesse perfil: "{incoming_msg}"
+Seja simpático, informativo e direto.
 """
 
     try:
         resposta = client.chat.completions.create(
             model="openai/gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Você é um assistente educacional especialista em empreendedorismo."},
+                {"role": "system", "content": "Você é um assistente educacional especialista em empreendedorismo, chamado Pjotinha."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -166,8 +177,8 @@ Mensagem do aluno: {incoming_msg}
         reply = resposta.choices[0].message.content.strip()
 
     except Exception as e:
-        print(f"Erro ao responder o aluno: {e}")
-        reply = f"Ocorreu um erro ao processar sua pergunta. Erro técnico: {e}"
+        print(f"Erro na resposta livre: {e}")
+        reply = "Desculpe, tive um problema técnico. Pode perguntar novamente?"
 
     aluno["history"].append(f"Aluno: {incoming_msg}")
     aluno["history"].append(f"IA: {reply}")
