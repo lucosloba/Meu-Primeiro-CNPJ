@@ -35,7 +35,7 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
         "perfil_curso": {
             "prompt": (
                 f"O aluno se chama {perfil['nome']}. Agora pergunte de forma simpática e clara qual curso ou área o aluno está cursando. "
-                "Evite perguntar onde estuda ou se está interessado. Pergunte apenas o que ele cursa na universidade."
+                "Evite perguntar onde estuda ou se está interessado. Pergunte apenas o que ele cursa na faculdade."
             )
         },
         "perfil_semestre": {
@@ -52,8 +52,9 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
         },
         "pronto": {
             "prompt": (
-                f"O aluno {perfil['nome']} completou o perfil (curso: {perfil['curso']}, semestre: {perfil['semestre']}, interesses: {perfil['interesses']}). "
-                "Agora diga que está tudo pronto e comece a apresentar o curso com entusiasmo. Evite repetir perguntas."
+                f"Você é o instrutor Pjotinha. O aluno {perfil['nome']} completou o perfil (curso: {perfil['curso']}, semestre: {perfil['semestre']}, interesses: {perfil['interesses']}). "
+                "Agradeça de forma simpática por compartilhar essas informações, diga que agora você conhece melhor o aluno e finalize com a pergunta: "
+                "'Você está pronto para dar o primeiro passo no mundo do empreendedorismo?' Não use a palavra 'perfil'."
             )
         }
     }
@@ -77,8 +78,8 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
 def extrair_dado(etapa, entrada):
     instrucoes = {
         "perfil_nome": "Extraia apenas o primeiro nome da mensagem abaixo. Responda só com o nome.",
-        "perfil_curso": "Extraia apenas o nome do curso ou área que o aluno está cursando na universidade.",
-        "perfil_semestre": "Extraia apenas o número do semestre da universidade em que o aluno está, como 1, 2, 3...",
+        "perfil_curso": "Extraia apenas o nome do curso ou área que o aluno está cursando na faculdade.",
+        "perfil_semestre": "Extraia apenas o número do semestre da faculdade em que o aluno está, como 1, 2, 3...",
         "perfil_interesses": "Resuma os interesses empreendedores do aluno com poucas palavras."
     }
 
