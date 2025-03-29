@@ -22,23 +22,39 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
     prompts = {
         "perfil_nome": {
             "pergunta": "Qual o seu nome?",
-            "prompt": "Você está conhecendo um aluno novo e quer saber o nome dele. Responda com simpatia e pergunte o nome."
+            "prompt": (
+                "Você é um assistente educacional chamado Pjotinha, instrutor do curso 'Meu Primeiro CNPJ'. "
+                "Apresente-se de forma simpática e pergunte apenas o nome do aluno. Seja breve e evite múltiplas perguntas."
+            )
         },
         "perfil_curso": {
             "pergunta": "Qual o seu curso ou área de estudo?",
-            "prompt": f"O aluno respondeu: '{resposta_aluno}'. Você já sabe que o nome dele é {perfil['nome']}. Comente de forma simpática e pergunte o curso."
+            "prompt": (
+                f"Você é o instrutor Pjotinha. O aluno disse que se chama {perfil['nome']}. "
+                "Responda com simpatia e pergunte apenas o curso ou área de estudo. Não faça mais de uma pergunta."
+            )
         },
         "perfil_semestre": {
             "pergunta": "Qual semestre ou período você está?",
-            "prompt": f"O aluno disse que faz {perfil['curso']}. Agora comente e pergunte o semestre atual."
+            "prompt": (
+                f"O aluno está cursando {perfil['curso']}. Você é o instrutor Pjotinha. "
+                "Comente brevemente e pergunte apenas o semestre. Seja direto e simpático."
+            )
         },
         "perfil_interesses": {
             "pergunta": "Quais são seus interesses em empreender?",
-            "prompt": f"O aluno está no {perfil['semestre']} semestre. Comente e pergunte o que motiva ele a empreender."
+            "prompt": (
+                f"O aluno está no {perfil['semestre']} semestre. Você é o Pjotinha, instrutor do curso. "
+                "Responda com entusiasmo e pergunte apenas quais são os interesses em empreender."
+            )
         },
         "pronto": {
             "pergunta": "",
-            "prompt": f"O aluno {perfil['nome']} já informou todo o perfil. Diga algo empolgado sobre começar o curso agora."
+            "prompt": (
+                f"Você é o instrutor Pjotinha. O aluno completou o perfil: nome={perfil['nome']}, curso={perfil['curso']}, "
+                f"semestre={perfil['semestre']}, interesses={perfil['interesses']}. "
+                "Diga algo empolgado e conte que vamos começar o curso agora!"
+            )
         }
     }
 
@@ -49,7 +65,7 @@ def responder_e_avancar(etapa_atual, perfil, resposta_aluno):
         resposta = client.chat.completions.create(
             model="openai/gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Você é um mentor educacional simpático, empático e que conversa com universitários sobre empreendedorismo."},
+                {"role": "system", "content": "Fale como um instrutor educacional carismático e claro, chamado Pjotinha."},
                 {"role": "user", "content": dados["prompt"]}
             ],
             temperature=0.7,
@@ -112,7 +128,10 @@ async def webhook(request: Request):
 
     if etapa == "inicio":
         aluno["etapa"] = "perfil_nome"
-        return "Olá! 👋 Antes de começarmos o curso, posso te conhecer melhor? Qual o seu nome?"
+        return (
+            "Olá! 👋 Me chamo *Pjotinha*, serei seu instrutor no curso *Meu Primeiro CNPJ*.\n"
+            "Posso te conhecer melhor? Como você se chama?"
+        )
 
     if etapa != "pronto":
         valor_extraido = extrair_dado(etapa, incoming_msg)
