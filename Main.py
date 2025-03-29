@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from dotenv import load_dotenv
 import openai
+from lib.pdf_loader import carregar_pdf_completo
+
 import os
 import re
 import json
@@ -12,6 +14,11 @@ client = openai.OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1"
 )
+
+
+# Carregar conteúdo completo do módulo 1 via PDF
+pdf_path = "modulos_pdf/modulo_1.pdf"
+TEXTO_MODULO_1 = carregar_pdf_completo(pdf_path)
 
 app = FastAPI()
 
@@ -173,6 +180,49 @@ async def webhook(request: Request):
         aluno["etapa"] = proxima_etapa
 
         return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
+
+
+    if etapa == "modulo_pdf_1":
+        if incoming_msg.lower() == "continuar":
+            if "conteudo_resumido" not in aluno or not aluno["conteudo_resumido"]:
+                try:
+                    resposta = client.chat.completions.create(
+                        model="openai/gpt-3.5-turbo",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    "Você é o Pjotinha, um instrutor educacional. "
+                                    "Divida o conteúdo a seguir em 5 partes explicativas curtas e didáticas. "
+                                    "Explique como se fosse uma aula para alunos universitários."
+                                )
+                            },
+                            {
+                                "role": "user",
+                                "content": TEXTO_MODULO_1
+                            }
+                        ],
+                        temperature=0.7,
+                        max_tokens=2000
+                    )
+                    blocos = resposta.choices[0].message.content.strip().split("\n\n")
+                    aluno["conteudo_resumido"] = blocos
+                    aluno["bloco"] = 0
+                except Exception as e:
+                    print("Erro ao resumir PDF:", e)
+                    return "Desculpe, tive um problema ao preparar a aula. Tente novamente."
+
+            blocos = aluno["conteudo_resumido"]
+            if aluno["bloco"] < len(blocos):
+                resposta = blocos[aluno["bloco"]]
+                aluno["bloco"] += 1
+                return resposta + "\n\nDigite *continuar* para avançar."
+            else:
+                aluno["etapa"] = "finalizado_pdf_1"
+                return "Você finalizou o conteúdo do Módulo 1! Em breve começaremos o quiz. 🎯"
+
+        return "Digite *continuar* para começarmos a aula do módulo 1. 📘"
+
 
     prompt = f"""
 Você é o Pjotinha, assistente virtual do curso de empreendedorismo. O aluno se chama {perfil['nome']}, faz {perfil['curso']}, está no {perfil['semestre']} semestre e tem interesse em {perfil['interesses']}.
