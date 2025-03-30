@@ -149,37 +149,25 @@ async def webhook(request: Request):
     if etapa == "inicio":
         aluno["etapa"] = "perfil_nome"
         return (
-            "Olá! 👋 Me chamo *Pjotinha*, serei seu instrutor no curso *Meu Primeiro CNPJ*."
-            "Posso te conhecer melhor? Como você se chama?"
+            "Olá! 👋 Eu sou o *Pjotinha*, seu instrutor no curso *Meu Primeiro CNPJ*."
+            "Antes de começarmos, quero te conhecer melhor. Qual o seu nome?"
         )
 
-    if etapa != "pronto":
-        if eh_pergunta(incoming_msg):
-            prompt = f"O aluno fez a seguinte pergunta: {incoming_msg}. Responda como o instrutor Pjotinha, de forma clara e empolgada."
-            try:
-                resposta = client.chat.completions.create(
-                    model="openai/gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "Você é o Pjotinha, um instrutor simpático e direto em um curso de empreendedorismo para universitários."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7,
-                    max_tokens=400
-                )
-                return resposta.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"Erro ao responder pergunta do aluno: {e}")
-                return "Desculpe, tive um problema ao responder. Pode repetir?"
+    if etapa.startswith("perfil_"):
+        try:
+            valor_extraido = extrair_dado(etapa, incoming_msg)
+            campo = etapa.replace("perfil_", "")
+            aluno["profile"][campo] = valor_extraido
 
-        valor_extraido = extrair_dado(etapa, incoming_msg)
-        campo = etapa.replace("perfil_", "")
-        aluno["profile"][campo] = valor_extraido
+            etapas = ["perfil_nome", "perfil_curso", "perfil_semestre", "perfil_interesses", "pronto"]
+            proxima_etapa = etapas[etapas.index(etapa) + 1]
+            aluno["etapa"] = proxima_etapa
 
-        etapas = ["perfil_nome", "perfil_curso", "perfil_semestre", "perfil_interesses", "pronto"]
-        proxima_etapa = etapas[etapas.index(etapa) + 1]
-        aluno["etapa"] = proxima_etapa
+            return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
 
-        return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
+        except Exception as e:
+            print(f"Erro ao responder pergunta do aluno: {e}")
+            return "Desculpe, tive um problema ao responder. Pode repetir?"
 
 
     if etapa == "pronto":
