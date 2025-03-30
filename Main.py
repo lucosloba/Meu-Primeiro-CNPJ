@@ -182,6 +182,14 @@ async def webhook(request: Request):
         return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
 
 
+    if etapa == "pronto":
+        comandos_inicio = ["começar", "iniciar", "quero começar", "vamos para o curso", "iniciar curso", "pode começar", "sim", "vamos"]
+        if any(cmd in incoming_msg.lower() for cmd in comandos_inicio):
+            aluno["etapa"] = "modulo_pdf_1"
+            return "Perfeito! Vamos começar agora com o conteúdo do Módulo 1. Digite *continuar* para iniciar a explicação. 🚀"
+
+
+
     if etapa == "modulo_pdf_1":
         if incoming_msg.lower() == "continuar":
             if "conteudo_resumido" not in aluno or not aluno["conteudo_resumido"]:
@@ -225,11 +233,7 @@ async def webhook(request: Request):
 
 
 
-    if etapa == "pronto":
-        comandos_inicio = ["começar", "iniciar", "quero começar", "vamos para o curso", "iniciar curso", "pode começar", "sim", "vamos"]
-        if any(cmd in incoming_msg.lower() for cmd in comandos_inicio):
-            aluno["etapa"] = "modulo_pdf_1"
-            return "Perfeito! Vamos começar agora com o conteúdo do Módulo 1. Digite *continuar* para iniciar a explicação. 🚀"
+    
 
 
     prompt = f"""
