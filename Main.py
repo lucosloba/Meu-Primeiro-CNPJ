@@ -149,7 +149,7 @@ async def webhook(request: Request):
     if etapa == "inicio":
         aluno["etapa"] = "perfil_nome"
         return (
-            "Olá! 👋 Eu sou o *Pjotinha*, seu instrutor no curso *Meu Primeiro CNPJ*."
+            "Olá! 👋 Eu sou o *Pjotinha*, seu instrutor no curso *Meu Primeiro CNPJ*. \n"
             "Antes de começarmos, quero te conhecer melhor. Qual o seu nome?"
         )
 
