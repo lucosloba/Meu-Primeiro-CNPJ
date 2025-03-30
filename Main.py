@@ -16,7 +16,7 @@ client = openai.OpenAI(
 )
 
 
-# Carregar conteúdo completo do módulo 1 via PDF
+# Carregar conteúdo completo do módulo um via PDF
 pdf_path = "modulos_pdf/modulo_1.pdf"
 TEXTO_MODULO_1 = carregar_pdf_completo(pdf_path)
 
@@ -222,6 +222,14 @@ async def webhook(request: Request):
                 return "Você finalizou o conteúdo do Módulo 1! Em breve começaremos o quiz. 🎯"
 
         return "Digite *continuar* para começarmos a aula do módulo 1. 📘"
+
+
+
+    if etapa == "pronto":
+        comandos_inicio = ["começar", "iniciar", "quero começar", "vamos para o curso", "iniciar curso", "pode começar", "sim", "vamos"]
+        if any(cmd in incoming_msg.lower() for cmd in comandos_inicio):
+            aluno["etapa"] = "modulo_pdf_1"
+            return "Perfeito! Vamos começar agora com o conteúdo do Módulo 1. Digite *continuar* para iniciar a explicação. 🚀"
 
 
     prompt = f"""
