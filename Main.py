@@ -40,7 +40,7 @@ def extract_name(text):
     """Extrai o primeiro nome de um texto usando a API OpenAI"""
     try:
         prompt_nome = f"Extraia apenas o primeiro nome da seguinte frase: '{text}'. Responda apenas com o nome, sem pontuação ou informações adicionais."
-        resposta_nome = openai.ChatCompletion.create(
+        resposta_nome = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt_nome}],
             temperature=0,
@@ -92,9 +92,17 @@ def extract_text_from_pdf(pdf_path):
         logger.error(f"Erro ao extrair texto do PDF {pdf_path}: {e}")
         return ""
 
+    # Cache simples para o conteúdo dos PDFs
+
+
+PDF_CACHE = {}
+
 
 def get_module_content(module_number):
-    """Busca o conteúdo do módulo em PDF"""
+    """Busca o conteúdo do módulo em PDF com cache"""
+    if module_number in PDF_CACHE:
+        return PDF_CACHE[module_number]
+
     # Procura o arquivo PDF correspondente
     pdf_pattern = f"{PDF_MODULES_PATH}modulo_{module_number}*.pdf"
     pdf_files = glob.glob(pdf_pattern)
@@ -129,7 +137,7 @@ def create_lesson_content(module_text, part_number):
         - 1 pergunta reflexiva no final
         """
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
@@ -164,7 +172,7 @@ def generate_enade_question(module_text, question_number):
         A resposta correta é a letra C. [Esta linha é para seu conhecimento, não inclua no resultado final]
         """
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
@@ -443,7 +451,7 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
                     messages.append({"role": "user", "content": incoming_msg})
 
                     # Chamar API
-                    ai_response = openai.ChatCompletion.create(
+                    ai_response = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=messages,
                         temperature=0.7,

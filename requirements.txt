@@ -6,3 +6,4 @@ pydantic
 python-multipart
 pymupdf
 sqlalchemy
+PyPDF2
