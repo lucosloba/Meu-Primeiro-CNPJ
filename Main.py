@@ -93,7 +93,7 @@ async def webhook(request: Request):
         aluno_db.perfil = aluno["profile"]
         session.commit()
         return PlainTextResponse(
-            "Perfil concluído! Está pronto para começar? Digite *continuar* para iniciar!"
+            "Prazer em te conhecer! Está pronto para começar? Digite *continuar* para iniciar!"
         )
 
     # Avanço no módulo com subetapas (modulo_pdf_1_1, modulo_pdf_1_2, ...)
