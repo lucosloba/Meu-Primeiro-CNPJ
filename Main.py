@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
+from db import Aluno as AlunoDB, HistoricoConversa, SessionLocal
 from dotenv import load_dotenv
 import openai
 import os
@@ -115,27 +116,30 @@ async def webhook(request: Request):
     if not incoming_msg or not sender:
         return "Mensagem inválida."
 
-    if sender not in ALUNOS:
-        ALUNOS[sender] = {
-            "nome": "",
-            "modulo_atual": 1,
-            "topico_atual": 0,
-            "pontos": 0,
-            "respostas": {},
-            "reprovado_em": [],
-            "atividade_pratica_concluida": False,
-            "quiz_modulo_concluido": False,
-            "etapa": "inicio",
-            "profile": {
-                "nome": None,
-                "curso": None,
-                "semestre": None,
-                "interesses": None
-            },
-            "history": []
-        }
+    session = SessionLocal()
+    aluno_db = session.query(AlunoDB).filter_by(numero_whatsapp=sender).first()
 
-    aluno = ALUNOS[sender]
+    if not aluno_db:
+        aluno_db = AlunoDB(numero_whatsapp=sender, etapa="inicio", perfil={})
+        session.add(aluno_db)
+        session.commit()
+
+    
+    from datetime import datetime
+    historico = HistoricoConversa(
+        aluno_id=aluno_db.id,
+        remetente="aluno",
+        mensagem=incoming_msg,
+        timestamp=datetime.now().isoformat()
+    )
+    session.add(historico)
+    session.commit()
+
+    aluno = {
+        "etapa": aluno_db.etapa,
+        "profile": aluno_db.perfil or {},
+        "pontuacao": aluno_db.pontuacao,
+    }
     etapa = aluno["etapa"]
     perfil = aluno["profile"]
 
@@ -159,7 +163,7 @@ async def webhook(request: Request):
                     temperature=0.7,
                     max_tokens=400
                 )
-                return resposta.choices[0].message.content.strip()
+                
             except Exception as e:
                 print(f"Erro ao responder pergunta do aluno: {e}")
                 return "Desculpe, tive um problema ao responder. Pode repetir?"
@@ -172,30 +176,15 @@ async def webhook(request: Request):
         proxima_etapa = etapas[etapas.index(etapa) + 1]
         aluno["etapa"] = proxima_etapa
 
-        return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
+    aluno_db.etapa = aluno["etapa"]
+    aluno_db.perfil = aluno["profile"]
+    aluno_db.pontuacao = aluno["pontuacao"]
+    session.commit()
+    aluno_db.etapa = aluno["etapa"]
+    aluno_db.perfil = aluno["profile"]
+    aluno_db.pontuacao = aluno["pontuacao"]
+    session.commit()
+    return responder_e_avancar(proxima_etapa, aluno["profile"], incoming_msg)
 
-    prompt = f"""
-Você é o Pjotinha, assistente virtual do curso de empreendedorismo. O aluno se chama {perfil['nome']}, faz {perfil['curso']}, está no {perfil['semestre']} semestre e tem interesse em {perfil['interesses']}.
-Responda a seguinte mensagem com base nesse perfil: "{incoming_msg}"
-Seja simpático, informativo e direto.
-"""
-
-    try:
-        resposta = client.chat.completions.create(
-            model="openai/gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Você é um assistente educacional especialista em empreendedorismo, chamado Pjotinha."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        reply = resposta.choices[0].message.content.strip()
-
-    except Exception as e:
-        print(f"Erro na resposta livre: {e}")
-        reply = "Desculpe, tive um problema técnico. Pode perguntar novamente?"
-
-    aluno["history"].append(f"Aluno: {incoming_msg}")
-    aluno["history"].append(f"IA: {reply}")
+    
     return reply
