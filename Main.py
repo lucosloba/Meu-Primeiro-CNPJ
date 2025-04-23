@@ -46,7 +46,7 @@ def extract_name(text):
             temperature=0,
             max_tokens=50,
         )
-        nome_extraido = resposta_nome.choices[0].message["content"].strip()
+        nome_extraido = resposta_nome.choices[0].message.content.strip()
         return nome_extraido
     except Exception as e:
         logger.error(f"Erro ao extrair nome: {e}")
@@ -144,7 +144,7 @@ def create_lesson_content(module_text, part_number):
             max_tokens=500,
         )
 
-        return response.choices[0].message["content"].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"Erro ao gerar conteúdo da aula: {e}")
         return f"Parte {part_number}: Conteúdo sobre empreendedorismo.\n\nDigite *continuar* para avançar."
@@ -180,7 +180,7 @@ def generate_enade_question(module_text, question_number):
         )
 
         # Extraindo a resposta e salvando a correta
-        full_response = response.choices[0].message["content"].strip()
+        full_response = response.choices[0].message.content.strip()
 
         # Extrair apenas a questão sem a linha da resposta
         lines = full_response.split("\n")
@@ -458,7 +458,7 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
                         max_tokens=500,
                     )
 
-                    resposta = ai_response.choices[0].message["content"].strip()
+                    resposta = ai_response.choices[0].message.content.strip()
 
                 except Exception as e:
                     logger.error(f"Erro na resposta da IA: {e}")
